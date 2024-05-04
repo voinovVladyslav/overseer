@@ -1,4 +1,5 @@
 import os
 
 
-SECRET_KEY = os.getenv('SECRET_KEY', 'secret')
+DB_NAME = os.getenv('DB_NAME', 'test_db')
+MONGO_URI = os.getenv('MONGO_URI', 'mongodb://localhost:27017')

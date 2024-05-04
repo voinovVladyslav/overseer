@@ -1,0 +1,23 @@
+version: '3.9'
+
+
+services:
+  db:
+    image: mongo:7.0.10-rc0-jammy
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${DB_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${DB_PASS}
+      - MONGO_INITDB_DATABASE=${DB_NAME}
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-data:/data/db
+      - mongodb-config:/data/configdb
+
+
+volumes:
+  mongodb-data: {}
+  mongodb-config: {}
