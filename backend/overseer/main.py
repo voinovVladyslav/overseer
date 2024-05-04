@@ -1,15 +1,21 @@
-from motor.motor_asyncio import AsyncIOMotorClient
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 
-from overseer.config import base as config
+from overseer.db.setup import setup_db
+from overseer.db.users import User
 
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await setup_db()
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 
 
 @app.get("/")
-async def home():
-    client = AsyncIOMotorClient(config.MONGO_URI)
-    db_names = await client.list_database_names()
-
-    return {"db_names": db_names}
+async def home() -> list[User]:
+    users = await User.all().to_list()
+    return users
