@@ -1,9 +1,11 @@
 version: '3.9'
 
+name: overseer
 
 services:
   db:
     image: mongo:7.0.10-rc0-jammy
+    container_name: mongodb
     restart: always
     env_file:
       - .env
