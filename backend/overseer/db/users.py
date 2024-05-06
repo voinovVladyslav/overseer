@@ -37,3 +37,7 @@ class CreateUser(BaseModel):
     password: str
     email: Optional[EmailStr] = None
 
+
+class AuthenticateUser(BaseModel):
+    username: str
+    password: str
