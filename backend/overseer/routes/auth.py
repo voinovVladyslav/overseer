@@ -3,8 +3,9 @@ from fastapi import APIRouter, HTTPException
 from fastapi import status
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
+from pydantic import SecretStr
 
-from overseer.db.users import User, CreateUser, UserResponse, AuthenticateUser
+from overseer.db.users import User, UserResponse, CreateUser, AuthenticateUser
 
 
 router = APIRouter(prefix='/auth', tags=['auth'])
@@ -12,7 +13,6 @@ router = APIRouter(prefix='/auth', tags=['auth'])
 
 @router.post(
     '/register',
-    response_model=UserResponse,
     status_code=status.HTTP_201_CREATED,
     summary='Register a new user.',
     description=(
@@ -22,11 +22,10 @@ router = APIRouter(prefix='/auth', tags=['auth'])
 )
 async def register(user_data: CreateUser) -> UserResponse:
     ph = PasswordHasher()
-    email = user_data.email or ''
     user = User(
         username=user_data.username,
-        password=ph.hash(user_data.password),
-        email=email,
+        password=SecretStr(ph.hash(user_data.password.get_secret_value())),
+        email=user_data.email,
     )
     try:
         await user.insert()
@@ -41,32 +40,35 @@ async def register(user_data: CreateUser) -> UserResponse:
 
 @router.post(
     '/token',
-    response_model=UserResponse,
     status_code=status.HTTP_200_OK,
     summary='Obtain authentication token.',
     description='Obtain an authentication token.',
 )
 async def obtain_token(user_data: AuthenticateUser) -> UserResponse:
     ph = PasswordHasher()
-    username = user_data.username
-    user = await User.find_one({'username': username})
+    user = await User.find_one({'username': user_data.username})
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail='Invalid credentials.',
         )
     try:
-        is_password_valid = ph.verify(user.password, user_data.password)
+        is_password_valid = ph.verify(
+            user.password.get_secret_value(),
+            user_data.password.get_secret_value(),
+        )
     except VerifyMismatchError:
         is_password_valid = False
 
-    if ph.check_needs_rehash(user.password):
-        user.password = ph.hash(user_data.password)
+    if ph.check_needs_rehash(user.password.get_secret_value()):
+        user.password = SecretStr(
+            ph.hash(user_data.password.get_secret_value())
+        )
         await user.set({'password': user.password})
 
     if not is_password_valid:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail='Invalid credentials.',
         )
 
