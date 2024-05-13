@@ -24,3 +24,4 @@ async def home() -> list[UserResponse]:
         UserResponse.model_validate(user, from_attributes=True)
         for user in users
     ]
+
