@@ -1,9 +1,6 @@
 from pymongo.errors import DuplicateKeyError
 from fastapi import APIRouter, HTTPException
 from fastapi import status
-from argon2 import PasswordHasher
-from argon2.exceptions import VerifyMismatchError
-from pydantic import SecretStr
 
 from overseer.db.users import User, UserResponse, CreateUser, AuthenticateUser
 
@@ -21,10 +18,9 @@ router = APIRouter(prefix='/auth', tags=['auth'])
     ),
 )
 async def register(user_data: CreateUser) -> UserResponse:
-    ph = PasswordHasher()
     user = User(
         username=user_data.username,
-        password=SecretStr(ph.hash(user_data.password.get_secret_value())),
+        password=User.hash_password(user_data.password.get_secret_value()),
         email=user_data.email,
     )
     try:
@@ -45,28 +41,14 @@ async def register(user_data: CreateUser) -> UserResponse:
     description='Obtain an authentication token.',
 )
 async def obtain_token(user_data: AuthenticateUser) -> UserResponse:
-    ph = PasswordHasher()
     user = await User.find_one({'username': user_data.username})
     if not user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail='Invalid credentials.',
         )
-    try:
-        is_password_valid = ph.verify(
-            user.password.get_secret_value(),
-            user_data.password.get_secret_value(),
-        )
-    except VerifyMismatchError:
-        is_password_valid = False
 
-    if ph.check_needs_rehash(user.password.get_secret_value()):
-        user.password = SecretStr(
-            ph.hash(user_data.password.get_secret_value())
-        )
-        await user.set({'password': user.password})
-
-    if not is_password_valid:
+    if not user.check_password(user_data.password):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail='Invalid credentials.',
