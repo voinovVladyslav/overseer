@@ -9,7 +9,7 @@ from overseer.routes.auth import router as auth_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await setup_db()
+    await setup_db(app)
     yield
 
 
@@ -24,4 +24,3 @@ async def home() -> list[UserResponse]:
         UserResponse.model_validate(user, from_attributes=True)
         for user in users
     ]
-
