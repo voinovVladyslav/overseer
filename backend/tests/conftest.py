@@ -36,4 +36,3 @@ async def client(app):
         base_url="http://localhost:8000",
     ) as client:
         yield client
-
