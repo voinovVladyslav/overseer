@@ -51,3 +51,23 @@ async def test_create_user_no_payload(client: AsyncClient):
     assert 'password' not in response.json()
 
     assert await User.find_all().to_list() == []
+
+
+async def test_create_user_duplicate_username(client: AsyncClient):
+    user = User(
+        username='vladyslav',
+        password=User.hash_password('strongpassword'),
+    )
+    await user.insert()
+    payload = {
+        'username': 'vladyslav',
+        'password': 'strongpassword',
+    }
+    response = await client.post(AUTH_REGISTER_URL, json=payload)
+    assert response.status_code == status.HTTP_409_CONFLICT
+
+    assert 'auth_token'not in response.json()
+    assert 'password' not in response.json()
+
+    users = User.all()
+    assert await users.count() == 1
