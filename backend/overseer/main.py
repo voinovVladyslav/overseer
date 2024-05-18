@@ -1,12 +1,12 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware import Middleware
 from starlette.middleware.authentication import AuthenticationMiddleware
 
 from overseer.db.setup import setup_db
-from overseer.db.users import User, UserResponse
 from overseer.routes.auth import router as auth_router
+from overseer.routes.users import router as users_router
 from overseer.core.middleware import TokenAuthenticationBackend
 
 
@@ -21,12 +21,4 @@ middleware = [
 ]
 app = FastAPI(lifespan=lifespan, middleware=middleware)
 app.include_router(auth_router)
-
-
-@app.get("/")
-async def home(request: Request) -> list[UserResponse]:
-    users = await User.find_all().to_list()
-    return [
-        UserResponse.model_validate(user, from_attributes=True)
-        for user in users
-    ]
+app.include_router(users_router)
