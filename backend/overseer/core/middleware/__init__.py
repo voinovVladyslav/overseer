@@ -1,1 +1,1 @@
-from .authentication import AuthenticationMiddleware  # noqa
+from .authentication import TokenAuthenticationBackend  # noqa

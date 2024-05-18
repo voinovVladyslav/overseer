@@ -7,9 +7,10 @@ from argon2.exceptions import VerifyMismatchError
 from pymongo import IndexModel
 from beanie import Document
 from pydantic import BaseModel, EmailStr, Field, SecretStr
+from starlette.authentication import BaseUser
 
 
-class User(Document):
+class User(Document, BaseUser):
     username: str = Field(min_length=4, max_length=128)
     password: SecretStr = Field(min_length=8, max_length=128)
     email: Optional[EmailStr] = None
@@ -24,6 +25,18 @@ class User(Document):
         indexes = [
             IndexModel("username", unique=True),
         ]
+
+    @property
+    def is_authenticated(self) -> bool:
+        return True
+
+    @property
+    def display_name(self) -> str:
+        return self.username
+
+    @property
+    def identity(self) -> str:
+        return self.username
 
     @staticmethod
     def hash_password(password: str) -> SecretStr:
