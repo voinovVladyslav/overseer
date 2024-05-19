@@ -4,9 +4,13 @@ import pytest_asyncio
 from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 from asgi_lifespan import LifespanManager
+from fastapi.middleware import Middleware
+from starlette.middleware.authentication import AuthenticationMiddleware
 
 from overseer.db.setup import setup_db
 from overseer.routes.auth import router as auth_router
+from overseer.routes.users import router as users_router
+from overseer.core.middleware import TokenAuthenticationBackend
 
 
 @pytest_asyncio.fixture
@@ -18,8 +22,14 @@ async def app():
         yield
         await app.state.db_client.drop_database(test_db_name)
 
-    app = FastAPI(lifespan=lifespan)
+    middleware = [
+        Middleware(
+            AuthenticationMiddleware, backend=TokenAuthenticationBackend()
+        ),
+    ]
+    app = FastAPI(lifespan=lifespan, middleware=middleware)
     app.include_router(auth_router)
+    app.include_router(users_router)
 
     async with LifespanManager(app) as manager:
         yield manager.app

@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from starlette.authentication import (
     AuthenticationBackend,
     AuthCredentials,
@@ -16,10 +18,12 @@ class TokenAuthenticationBackend(AuthenticationBackend):
         if "Authorization" not in conn.headers:
             return AuthCredentials(scopes=['anonymous']), UnauthenticatedUser()
         try:
-            token = conn.headers["Authorization"].split(" ")[1]
-            user = await User.find_one({"auth_token": token})
+            scheme, token = conn.headers["Authorization"].split(" ")
+            if scheme != "Bearer":
+                return
+            user = await User.find_one({"auth_token": UUID(token)})
             if not user:
                 return
-        except IndexError:
+        except (IndexError, ValueError):
             return
         return AuthCredentials(scopes=['authenticated']), user
