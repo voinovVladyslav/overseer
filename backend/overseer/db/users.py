@@ -14,10 +14,10 @@ class User(Document, BaseUser):
     username: str = Field(min_length=4, max_length=128)
     password: SecretStr = Field(min_length=8, max_length=128)
     email: EmailStr | None = None
-    is_active: bool = Field(default=True)
-    created_at: datetime = datetime.now()
-    last_login: datetime = datetime.now()
-    auth_token: uuid.UUID = uuid.uuid4()
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=datetime.now)
+    last_login: datetime = Field(default_factory=datetime.now)
+    auth_token: uuid.UUID = Field(default_factory=uuid.uuid4)
 
     class Settings:
         collection = "users"
