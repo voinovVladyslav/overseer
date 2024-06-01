@@ -3,14 +3,21 @@
     "disable_existing_loggers": false,
     "formatters": {
         "simple": {
-            "format": "%(levelname)s:%(name)s:%(asctime)s: %(message)s"
+            "format": "%(levelname)s %(asctime)s %(name)s %(message)s",
+            "datefmt": "%Y-%m-%dT%H:%M:%S%z"
+        }
+    },
+    "filters": {
+        "no_pymongo_info": {
+            "()": "overseer.chronicler.filters.NoPyMongoInfoFilter"
         }
     },
     "handlers": {
         "stdout": {
             "class": "logging.StreamHandler",
             "formatter": "simple",
-            "stream": "ext://sys.stdout"
+            "stream": "ext://sys.stdout",
+            "filters": ["no_pymongo_info"]
         }
     },
     "loggers": {

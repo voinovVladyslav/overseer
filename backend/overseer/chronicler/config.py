@@ -9,4 +9,3 @@ def setup_logging():
     with open(config_path) as f:
         config = json.load(f)
     logging.config.dictConfig(config)
-
