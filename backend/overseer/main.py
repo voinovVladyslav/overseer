@@ -7,7 +7,11 @@ from starlette.middleware.authentication import AuthenticationMiddleware
 from overseer.db.setup import setup_db
 from overseer.routes.auth import router as auth_router
 from overseer.routes.users import router as users_router
-from overseer.core.middleware import TokenAuthenticationBackend
+from overseer.core.middleware.authentication import TokenAuthenticationBackend
+from overseer.chronicler.config import setup_logging
+
+
+setup_logging()
 
 
 @asynccontextmanager
