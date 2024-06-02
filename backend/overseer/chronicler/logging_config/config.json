@@ -16,6 +16,9 @@
                     "level": "WARNING"
                 }
             ]
+        },
+        "color": {
+            "()": "overseer.chronicler.filters.ColorFilter"
         }
     },
     "handlers": {
@@ -23,7 +26,7 @@
             "class": "logging.StreamHandler",
             "formatter": "simple",
             "stream": "ext://sys.stdout",
-            "filters": ["keyword"]
+            "filters": ["keyword", "color"]
         }
     },
     "loggers": {
