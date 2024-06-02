@@ -8,8 +8,14 @@
         }
     },
     "filters": {
-        "no_pymongo_info": {
-            "()": "overseer.chronicler.filters.NoPyMongoInfoFilter"
+        "keyword": {
+            "()": "overseer.chronicler.filters.KeywordLevelFilter",
+            "filters": [
+                {
+                    "keywords": ["pymongo"],
+                    "level": "WARNING"
+                }
+            ]
         }
     },
     "handlers": {
@@ -17,7 +23,7 @@
             "class": "logging.StreamHandler",
             "formatter": "simple",
             "stream": "ext://sys.stdout",
-            "filters": ["no_pymongo_info"]
+            "filters": ["keyword"]
         }
     },
     "loggers": {
